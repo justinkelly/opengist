@@ -445,7 +445,7 @@ func TestGistPost(t *testing.T) {
 
 	s.Register(t, "thomas")
 
-	t.Run("RedirectsToPostWhenReadmeExists", func(t *testing.T) {
+	t.Run("RendersPostAtRootWhenReadmeExists", func(t *testing.T) {
 		s.Login(t, "thomas")
 		resp := s.Request(t, "POST", "/", url.Values{
 			"title":   {"Blog Post"},
@@ -460,8 +460,10 @@ func TestGistPost(t *testing.T) {
 		username, identifier := parts[0], parts[1]
 		s.Logout()
 
-		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 302)
-		assert.Equal(t, "/"+username+"/"+identifier+"/post", resp.Header.Get("Location"))
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Contains(t, string(body), "Hello World")
 	})
 
 	t.Run("PostRendersReadme", func(t *testing.T) {
@@ -513,7 +515,7 @@ func TestGistPost(t *testing.T) {
 		require.Contains(t, html, "example.go")
 	})
 
-	t.Run("RedirectsToPostWhenNoReadmeButHasFiles", func(t *testing.T) {
+	t.Run("RendersPostAtRootWhenNoReadmeButHasFiles", func(t *testing.T) {
 		s.Login(t, "thomas")
 		resp := s.Request(t, "POST", "/", url.Values{
 			"title":       {"Snippet"},
@@ -529,8 +531,10 @@ func TestGistPost(t *testing.T) {
 		username, identifier := parts[0], parts[1]
 		s.Logout()
 
-		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 302)
-		assert.Equal(t, "/"+username+"/"+identifier+"/post", resp.Header.Get("Location"))
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		require.Contains(t, string(body), "A useful snippet")
 	})
 
 	t.Run("PostRendersDescriptionAndAllFilesWithoutReadme", func(t *testing.T) {

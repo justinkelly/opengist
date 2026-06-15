@@ -20,8 +20,7 @@ func GistRoot(ctx *context.Context) error {
 	}
 
 	if hasPostTab, ok := ctx.GetData("hasPostTab").(bool); ok && hasPostTab {
-		gist := ctx.GetData("gist").(*db.Gist)
-		return ctx.Redirect(302, "/"+gist.User.Username+"/"+gist.Identifier()+"/post")
+		return Post(ctx)
 	}
 
 	return GistIndex(ctx)
