@@ -198,6 +198,12 @@ func (s *Server) setFuncMap() {
 		"humanDateOnly": func(t int64) string {
 			return time.Unix(t, 0).Format("02/01/2006")
 		},
+		"gistPublishedAt": func(gist *db.Gist) int64 {
+			if gist == nil {
+				return 0
+			}
+			return gist.PublishedAtDisplay()
+		},
 		"mainTheme": func(theme *db.UserStyleDTO) string {
 			if theme == nil {
 				return "auto"

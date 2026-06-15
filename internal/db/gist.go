@@ -85,6 +85,7 @@ type Gist struct {
 	NbForks         int
 	CreatedAt       int64
 	UpdatedAt       int64
+	PublishedAt     int64 // optional display creation date; 0 = use repo creation date
 
 	Likes    []User `gorm:"many2many:likes;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Forked   *Gist  `gorm:"foreignKey:ForkedID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL"`
@@ -704,6 +705,19 @@ func (gist *Gist) NbCommits() (string, error) {
 	return git.CountCommits(gist.User.Username, gist.Uuid)
 }
 
+// PublishedAtDisplay returns the configured published date, or the git
+// repository creation time when unset.
+func (gist *Gist) PublishedAtDisplay() int64 {
+	if gist.PublishedAt > 0 {
+		return gist.PublishedAt
+	}
+	ts, err := git.GetRepositoryCreatedTimestamp(gist.User.Username, gist.Uuid)
+	if err != nil || ts == 0 {
+		return gist.CreatedAt
+	}
+	return ts
+}
+
 func (gist *Gist) AddAndCommitFiles(files *[]FileDTO) error {
 	if err := git.CloneTmp(gist.User.Username, gist.Uuid, gist.Uuid, gist.User.Email, true); err != nil {
 		return err
@@ -956,10 +970,11 @@ func (gist *Gist) ToDTO() (*GistDTO, error) {
 	}
 
 	return &GistDTO{
-		Title:       gist.Title,
-		Description: gist.Description,
-		URL:         gist.URL,
-		Files:       fileDTOs,
+		Title:           gist.Title,
+		Description:     gist.Description,
+		URL:             gist.URL,
+		Files:           fileDTOs,
+		PublishedAtDate: formatPublishedAtDate(gist.PublishedAt),
 		VisibilityDTO: VisibilityDTO{
 			Private: gist.Private,
 		},
@@ -977,6 +992,7 @@ type GistDTO struct {
 	Name               []string  `form:"name"`
 	Content            []string  `form:"content"`
 	Topics             string    `validate:"gisttopics" form:"topics"`
+	PublishedAtDate    string    `validate:"omitempty,datetime=2006-01-02" form:"published_at"`
 	UploadedFilesUUID  []string  `validate:"omitempty,dive,required,uuid" form:"uploadedfile_uuid"`
 	UploadedFilesNames []string  `validate:"omitempty,dive,required" form:"uploadedfile_filename"`
 	BinaryFileOldName  []string  `form:"binary_old_name"`
@@ -985,7 +1001,7 @@ type GistDTO struct {
 }
 
 func (dto *GistDTO) HasMetadata() bool {
-	return dto.Title != "" || dto.Description != "" || dto.URL != "" || dto.Topics != ""
+	return dto.Title != "" || dto.Description != "" || dto.URL != "" || dto.Topics != "" || dto.PublishedAtDate != ""
 }
 
 type VisibilityDTO struct {
@@ -1000,13 +1016,15 @@ type FileDTO struct {
 }
 
 func (dto *GistDTO) ToGist() *Gist {
-	return &Gist{
+	gist := &Gist{
 		Title:       dto.Title,
 		Description: dto.Description,
 		Private:     dto.Private,
 		URL:         dto.URL,
 		Topics:      dto.TopicStrToSlice(),
 	}
+	gist.PublishedAt = parsePublishedAtDate(dto.PublishedAtDate)
+	return gist
 }
 
 func (dto *GistDTO) ToExistingGist(gist *Gist) *Gist {
@@ -1014,7 +1032,26 @@ func (dto *GistDTO) ToExistingGist(gist *Gist) *Gist {
 	gist.Description = dto.Description
 	gist.URL = dto.URL
 	gist.Topics = dto.TopicStrToSlice()
+	gist.PublishedAt = parsePublishedAtDate(dto.PublishedAtDate)
 	return gist
+}
+
+func parsePublishedAtDate(value string) int64 {
+	if value == "" {
+		return 0
+	}
+	t, err := time.ParseInLocation("2006-01-02", value, time.UTC)
+	if err != nil {
+		return 0
+	}
+	return t.Unix()
+}
+
+func formatPublishedAtDate(unix int64) string {
+	if unix <= 0 {
+		return ""
+	}
+	return time.Unix(unix, 0).UTC().Format("2006-01-02")
 }
 
 func (dto *GistDTO) TopicStrToSlice() []GistTopic {

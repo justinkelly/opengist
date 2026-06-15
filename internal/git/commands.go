@@ -364,6 +364,38 @@ func GetLog(user string, gist string, revision string, skip int, limit int) ([]*
 	return parseLog(stdout, maxFilesPerDiffCommit, diffSize)
 }
 
+// GetRepositoryCreatedTimestamp returns the author date of the oldest commit,
+// or the repository directory modification time when the repo has no commits yet.
+func GetRepositoryCreatedTimestamp(user string, gist string) (int64, error) {
+	repositoryPath := RepositoryPath(user, gist)
+
+	cmd := exec.Command(
+		"git",
+		"--no-pager",
+		"log",
+		"--reverse",
+		"-1",
+		"--format=format:t%at",
+		"HEAD",
+	)
+	cmd.Dir = repositoryPath
+	if stdout, err := cmd.Output(); err == nil {
+		s := strings.TrimSpace(string(stdout))
+		if s != "" {
+			ts, err := strconv.ParseInt(s, 10, 64)
+			if err == nil {
+				return ts, nil
+			}
+		}
+	}
+
+	info, err := os.Stat(repositoryPath)
+	if err != nil {
+		return 0, err
+	}
+	return info.ModTime().Unix(), nil
+}
+
 func CloneTmp(user string, gist string, gistTmpId string, email string, remove bool) error {
 	repositoryPath := RepositoryPath(user, gist)
 

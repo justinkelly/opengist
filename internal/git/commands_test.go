@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestInitDeleteRepository(t *testing.T) {
@@ -50,6 +51,26 @@ func TestCommits(t *testing.T) {
 	nbCommits, err = CountCommits("thomas", "gist1")
 	require.NoError(t, err, "Could not count commits")
 	require.Equal(t, "2", nbCommits, "Repository should have 2 commits")
+}
+
+func TestGetRepositoryCreatedTimestamp(t *testing.T) {
+	SetupTest(t)
+	defer TeardownTest(t)
+
+	ts, err := GetRepositoryCreatedTimestamp("thomas", "gist1")
+	require.NoError(t, err)
+	require.Greater(t, ts, int64(0))
+
+	CommitToBare(t, "thomas", "gist1", map[string]string{"hello.txt": "hello"})
+	firstCommitTS, err := GetRepositoryCreatedTimestamp("thomas", "gist1")
+	require.NoError(t, err)
+	require.Greater(t, firstCommitTS, int64(0))
+
+	time.Sleep(1100 * time.Millisecond)
+	CommitToBare(t, "thomas", "gist1", map[string]string{"hello.txt": "hello again"})
+	oldestCommitTS, err := GetRepositoryCreatedTimestamp("thomas", "gist1")
+	require.NoError(t, err)
+	require.Equal(t, firstCommitTS, oldestCommitTS)
 }
 
 func TestContent(t *testing.T) {
