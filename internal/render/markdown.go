@@ -12,6 +12,7 @@ import (
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
+	mdhtml "github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/util"
 	"go.abhg.dev/goldmark/mermaid"
 )
@@ -45,6 +46,13 @@ func MarkdownString(content string) (string, error) {
 	return buf.String(), err
 }
 
+func PostMarkdownString(content string) (string, error) {
+	var buf bytes.Buffer
+	err := newPostMarkdown().Convert([]byte(content), &buf)
+
+	return buf.String(), err
+}
+
 func newMarkdown(extraExtensions ...goldmark.Extender) goldmark.Markdown {
 	extensions := []goldmark.Extender{
 		extension.GFM,
@@ -70,4 +78,27 @@ func newMarkdown(extraExtensions ...goldmark.Extender) goldmark.Markdown {
 
 func newMarkdownWithSvgExtension() goldmark.Markdown {
 	return newMarkdown(&svgToImgBase64{})
+}
+
+func newPostMarkdown() goldmark.Markdown {
+	extensions := []goldmark.Extender{
+		extension.GFM,
+		highlighting.NewHighlighting(
+			highlighting.WithStyle("catppuccin-latte"),
+			highlighting.WithFormatOptions(html.WithClasses(true)),
+		),
+		emoji.Emoji,
+		&mermaid.Extender{},
+		&svgToImgBase64{},
+	}
+
+	return goldmark.New(
+		goldmark.WithExtensions(extensions...),
+		goldmark.WithParserOptions(
+			parser.WithASTTransformers(
+				util.Prioritized(&checkboxTransformer{}, 10000),
+			),
+		),
+		goldmark.WithRendererOptions(mdhtml.WithUnsafe()),
+	)
 }

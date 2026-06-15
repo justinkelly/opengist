@@ -1,7 +1,6 @@
 package render
 
 import (
-	"path/filepath"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -59,12 +58,6 @@ func processFile(file *git.File) RenderedFile {
 				log.Error().Err(err).Msg("Error rendering gist preview for " + file.Filename)
 			}
 			return rendered
-		}
-		return rendered
-	} else if mt.IsText() && filepath.Ext(file.Filename) == ".md" {
-		rendered, err := renderMarkdownFile(file)
-		if err != nil {
-			log.Error().Err(err).Msg("Error rendering markdown file for " + file.Filename)
 		}
 		return rendered
 	} else if mt.IsSVG() {

@@ -438,3 +438,78 @@ func TestGistJsonSingleFile(t *testing.T) {
 		require.Len(t, files, 1)
 	})
 }
+
+func TestGistPost(t *testing.T) {
+	s := webtest.Setup(t)
+	defer webtest.Teardown(t)
+
+	s.Register(t, "thomas")
+
+	t.Run("RedirectsToPostWhenReadmeExists", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":   {"Blog Post"},
+			"name":    {"README.md", "example.go"},
+			"content": {"# Hello World\n\nThis is my post.", "package main\n\nfunc main() {}"},
+			"private": {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 302)
+		assert.Equal(t, "/"+username+"/"+identifier+"/post", resp.Header.Get("Location"))
+	})
+
+	t.Run("PostRendersReadme", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":   {"Blog Post"},
+			"name":    {"README.md", "example.go"},
+			"content": {"# Hello World\n\n{{ \"example.go\" }}", "package main\n\nfunc main() {}"},
+			"private": {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier+"/post", nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		html := string(body)
+		require.Contains(t, html, "Hello World")
+		require.Contains(t, html, "data-file=\"example.go\"")
+		require.Contains(t, html, "copy-gist-btn")
+		require.Contains(t, html, "package")
+		require.Contains(t, html, "main")
+	})
+
+	t.Run("CodeTabShowsReadme", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":   {"Blog Post"},
+			"name":    {"README.md", "example.go"},
+			"content": {"# Hello World", "package main"},
+			"private": {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier+"/code", nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		html := string(body)
+		require.Contains(t, html, "README.md")
+		require.Contains(t, html, "example.go")
+	})
+}

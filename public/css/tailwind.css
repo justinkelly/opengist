@@ -55,3 +55,102 @@
 
     @import "./style.css";
 }
+
+/*
+ * Post tab file embeds: unlayered overrides (github-markdown.css uses @layer).
+ */
+.gist-post-body [data-file],
+.gist-post-body .gist-embed-error {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: var(--base-size-16, 1rem) !important;
+}
+
+.gist-post-body [data-file] table.table-code tr {
+    background-color: transparent !important;
+    border-top: none !important;
+}
+
+.gist-post-body [data-file] table.table-code tr:nth-child(2n) {
+    background-color: transparent !important;
+}
+
+.gist-post-body [data-file] a {
+    text-decoration: none !important;
+}
+
+.gist-post-body [data-file] .filename > a {
+    color: var(--color-slate-700) !important;
+}
+
+.gist-post-body [data-file] .filename > a:hover {
+    color: var(--color-primary-600) !important;
+}
+
+.gist-post-body [data-file] span.isolate > a,
+.gist-post-body [data-file] span.isolate > button {
+    color: var(--color-gray-500) !important;
+    background-color: #fff !important;
+    border: none !important;
+    box-shadow: inset 0 0 0 1px var(--color-gray-300) !important;
+}
+
+.gist-post-body [data-file] span.isolate > a:hover,
+.gist-post-body [data-file] span.isolate > button:hover {
+    color: var(--color-slate-700) !important;
+    background-color: var(--color-gray-50) !important;
+}
+
+.dark .gist-post-body [data-file] .filename > a {
+    color: var(--color-slate-300) !important;
+}
+
+.dark .gist-post-body [data-file] span.isolate > a,
+.dark .gist-post-body [data-file] span.isolate > button {
+    color: var(--color-slate-300) !important;
+    background-color: var(--color-gray-600) !important;
+    box-shadow: inset 0 0 0 1px var(--color-gray-300) !important;
+}
+
+.dark .gist-post-body [data-file] span.isolate > a:hover,
+.dark .gist-post-body [data-file] span.isolate > button:hover {
+    color: var(--color-slate-300) !important;
+    background-color: var(--color-gray-700) !important;
+}
+
+.gist-post-body [data-file] table.table-code {
+    font-size: 0.8em !important;
+    display: table !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+}
+
+.markdown-body .code table {
+    margin-bottom: 0 !important;
+}
+
+.gist-post-body [data-file] table.table-code th,
+.gist-post-body [data-file] table.table-code td {
+    border: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    background: transparent !important;
+}
+
+.gist-post-body [data-file] .code td {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.gist-post-body p:has(> [data-file]) {
+    display: contents;
+}
+
+.markdown-body pre {
+    padding: 0 !important;
+}
+
+.markdown-body pre > .md-code-copy-btn {
+    top: 0.3rem;
+    right: 0.3rem;
+}

@@ -18,7 +18,9 @@ import (
 	"github.com/thomiceli/opengist/internal/auth"
 	"github.com/thomiceli/opengist/internal/config"
 	"github.com/thomiceli/opengist/internal/db"
+	"github.com/thomiceli/opengist/internal/git"
 	"github.com/thomiceli/opengist/internal/i18n"
+	"github.com/thomiceli/opengist/internal/render"
 	"github.com/thomiceli/opengist/internal/web/context"
 	"github.com/thomiceli/opengist/internal/web/handlers"
 	"golang.org/x/text/cases"
@@ -455,6 +457,13 @@ func gistInit(next Handler) Handler {
 		}
 
 		ctx.SetData("gist", gist)
+
+		filenames, err := git.GetFilesOfRepository(userName, gist.Uuid, "HEAD")
+		hasReadme := false
+		if err == nil {
+			hasReadme = render.HasReadmeInFilenames(filenames)
+		}
+		ctx.SetData("hasReadme", hasReadme)
 
 		if ssh := gist.SSHCloneURL(ctx.Request().Host); ssh != "" {
 			ctx.SetData("sshCloneUrl", ssh)

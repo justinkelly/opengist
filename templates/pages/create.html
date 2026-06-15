@@ -37,7 +37,7 @@
                         {{ template "_editor" dict "Filename" .Filename "Content" .Content "locale" $.locale }}
                     {{ end }}
                 {{ else }}
-                    {{ template "_editor" . }}
+                    {{ template "_editor" dict "Filename" "README.md" "Content" "" "locale" .locale }}
                 {{ end }}
             </div>
 

@@ -10,6 +10,7 @@ gist.header.delete: Delete
 gist.header.forked-from: Forked from
 gist.header.last-active: Last active
 gist.header.select-tab: Select a tab
+gist.header.post: Post
 gist.header.code: Code
 gist.header.revisions: Revisions
 gist.header.revision: Revision

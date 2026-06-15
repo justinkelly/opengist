@@ -14,38 +14,6 @@ import (
 	"github.com/thomiceli/opengist/internal/web/context"
 )
 
-func GistIndex(ctx *context.Context) error {
-	if ctx.GetData("gistpage") == "js" {
-		return GistJs(ctx)
-	} else if ctx.GetData("gistpage") == "json" {
-		return GistJson(ctx)
-	}
-
-	gist := ctx.GetData("gist").(*db.Gist)
-	revision := ctx.Param("revision")
-
-	if revision == "" {
-		revision = "HEAD"
-	}
-
-	files, hasMoreFiles, err := gist.Files(revision, true)
-	if _, ok := err.(*git.RevisionNotFoundError); ok {
-		return ctx.NotFound("Revision not found")
-	} else if err != nil {
-		return ctx.ErrorRes(500, "Error fetching files", err)
-	}
-
-	renderedFiles := render.RenderFiles(files)
-
-	ctx.SetData("page", "code")
-	ctx.SetData("commit", revision)
-	ctx.SetData("files", renderedFiles)
-	ctx.SetData("hasMoreFiles", hasMoreFiles)
-	ctx.SetData("revision", revision)
-	ctx.SetData("htmlTitle", gist.Title)
-	return ctx.Html("gist.html")
-}
-
 func GistJson(ctx *context.Context) error {
 	gist := ctx.GetData("gist").(*db.Gist)
 

@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -21,7 +20,6 @@ import (
 	"github.com/thomiceli/opengist/internal/web/handlers/git"
 	"github.com/thomiceli/opengist/internal/web/handlers/health"
 	"github.com/thomiceli/opengist/internal/web/handlers/settings"
-	"github.com/thomiceli/opengist/public"
 )
 
 func (s *Server) registerRoutes() {
@@ -172,7 +170,10 @@ func (s *Server) registerRoutes() {
 		sC := r.SubGroup("/:user/:gistname")
 		{
 			sC.Use(makeCheckRequireLogin(true), gistInit)
-			sC.GET("", gist.GistIndex)
+			sC.GET("", gist.GistRoot)
+			sC.GET("/post", gist.Post)
+			sC.GET("/post/rev/:revision", gist.Post)
+			sC.GET("/code", gist.GistIndex)
 			sC.GET("/rev/:revision", gist.GistIndex)
 			sC.GET("/revisions", gist.Revisions)
 			sC.GET("/archive/:revision", gist.DownloadZip)
@@ -191,17 +192,28 @@ func (s *Server) registerRoutes() {
 	}
 
 	customFs := os.DirFS(filepath.Join(config.GetHomeDir(), "custom"))
+	embeddedAssets, embeddedAssetsErr := embeddedAssetHandler()
 	r.GET("/assets/*", func(ctx *context.Context) error {
-		if _, err := public.Files.Open(path.Join("assets", ctx.Param("*"))); !s.dev && err == nil {
-			ctx.Response().Header().Set("Cache-Control", "public, max-age=31536000")
-			ctx.Response().Header().Set("Expires", time.Now().AddDate(1, 0, 0).Format(http.TimeFormat))
+		name := ctx.Param("*")
+		if !safeAssetName(name) {
+			return ctx.NotFound("not found")
+		}
 
-			return echo.WrapHandler(http.FileServer(http.FS(public.Files)))(ctx)
+		if !s.dev && embeddedAssetsErr == nil {
+			assetsFS, err := embeddedAssetFS()
+			if err == nil {
+				if _, err := assetsFS.Open(name); err == nil {
+					ctx.Response().Header().Set("Cache-Control", "public, max-age=31536000")
+					ctx.Response().Header().Set("Expires", time.Now().AddDate(1, 0, 0).Format(http.TimeFormat))
+
+					return echo.WrapHandler(embeddedAssets)(ctx)
+				}
+			}
 		}
 
 		// if the custom file is an .html template, render it
-		if strings.HasSuffix(ctx.Param("*"), ".html") {
-			if err := ctx.Html(ctx.Param("*")); err != nil {
+		if strings.HasSuffix(name, ".html") {
+			if err := ctx.Html(name); err != nil {
 				return ctx.NotFound("Page not found")
 			}
 			return nil

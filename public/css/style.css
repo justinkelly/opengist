@@ -171,6 +171,51 @@ dl.dl-config dd {
     @apply bg-transparent dark:bg-transparent;
 }
 
+.gist-post {
+    @apply pb-12;
+}
+
+.gist-post-body {
+    @apply w-full text-lg leading-relaxed bg-transparent dark:bg-transparent;
+}
+
+.gist-post-body > [data-file],
+.gist-post-body > .gist-embed-error {
+    @apply mt-4;
+}
+
+.gist-post-body h1 {
+    @apply text-3xl font-bold mt-8 mb-4 pb-2 border-b border-gray-200 dark:border-gray-700;
+}
+
+.gist-post-body h2 {
+    @apply text-2xl font-semibold mt-8 mb-3;
+}
+
+.gist-post-body h3 {
+    @apply text-xl font-semibold mt-6 mb-2;
+}
+
+.gist-post-body p {
+    @apply my-4;
+}
+
+.gist-post-body pre {
+    @apply flex relative items-start p-0;
+}
+
+.gist-post-body .code-div {
+    @apply p-4 max-w-full overflow-x-auto;
+}
+
+.gist-post-body pre code {
+    @apply overflow-auto whitespace-pre;
+}
+
+.gist-post-body img {
+    @apply bg-transparent dark:bg-transparent;
+}
+
 .chroma.preview.markdown pre code {
     @apply p-4;
 }
