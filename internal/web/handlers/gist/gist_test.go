@@ -512,4 +512,50 @@ func TestGistPost(t *testing.T) {
 		require.Contains(t, html, "README.md")
 		require.Contains(t, html, "example.go")
 	})
+
+	t.Run("RedirectsToPostWhenNoReadmeButHasFiles", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":       {"Snippet"},
+			"description": {"A useful snippet"},
+			"name":        {"example.go"},
+			"content":     {"package main\n\nfunc main() {}"},
+			"private":     {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier, nil, 302)
+		assert.Equal(t, "/"+username+"/"+identifier+"/post", resp.Header.Get("Location"))
+	})
+
+	t.Run("PostRendersDescriptionAndAllFilesWithoutReadme", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":       {"Snippet"},
+			"description": {"## Overview\n\nSnippet collection."},
+			"name":        {"example.go", "notes.txt"},
+			"content":     {"package main\n\nfunc main() {}", "notes"},
+			"private":     {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier+"/post", nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		html := string(body)
+		require.Contains(t, html, "Overview")
+		require.Contains(t, html, "data-file=\"example.go\"")
+		require.Contains(t, html, "data-file=\"notes.txt\"")
+		require.Contains(t, html, "copy-gist-btn")
+	})
 }

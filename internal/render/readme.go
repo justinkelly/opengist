@@ -29,6 +29,10 @@ func HasReadmeInFilenames(filenames []string) bool {
 	return false
 }
 
+func HasPostTab(filenames []string) bool {
+	return len(filenames) > 0
+}
+
 func findRenderedFileByName(files map[string]RenderedFile, name string) (RenderedFile, bool) {
 	if rendered, ok := files[name]; ok {
 		return rendered, true

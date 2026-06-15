@@ -460,10 +460,13 @@ func gistInit(next Handler) Handler {
 
 		filenames, err := git.GetFilesOfRepository(userName, gist.Uuid, "HEAD")
 		hasReadme := false
+		hasPostTab := false
 		if err == nil {
 			hasReadme = render.HasReadmeInFilenames(filenames)
+			hasPostTab = render.HasPostTab(filenames)
 		}
 		ctx.SetData("hasReadme", hasReadme)
+		ctx.SetData("hasPostTab", hasPostTab)
 
 		if ssh := gist.SSHCloneURL(ctx.Request().Host); ssh != "" {
 			ctx.SetData("sshCloneUrl", ssh)

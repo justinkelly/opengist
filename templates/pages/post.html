@@ -1,7 +1,21 @@
 {{ template "header" .}}
 {{ template "gist_header" .}}
     <article class="gist-post pb-12">
-        <div class="gist-post-body markdown markdown-body">{{ .postHTML | safe }}</div>
+        <div class="gist-post-body markdown markdown-body">
+            {{ if .postHTML }}{{ .postHTML | safe }}{{ end }}
+            {{ if .postFiles }}
+            <div class="grid gap-y-4{{ if .postHTML }} mt-4{{ end }}">
+                {{ if .hasMoreFiles }}
+                <div class="rounded-md border border-1 border-yellow-300 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/30 px-4 py-2 text-sm text-yellow-900 dark:text-yellow-200">
+                    {{ .locale.Tr "gist.files-truncated" }}
+                </div>
+                {{ end }}
+                {{ range $file := .postFiles }}
+                {{ template "_gist_file" (dict "file" $file "root" $) }}
+                {{ end }}
+            </div>
+            {{ end }}
+        </div>
     </article>
 
 <!-- make sure tailwind knows those classes -->

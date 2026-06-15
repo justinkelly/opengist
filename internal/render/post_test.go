@@ -16,6 +16,13 @@ func TestIsReadmeFilename(t *testing.T) {
 	assert.False(t, render.IsReadmeFilename("notes.md"))
 }
 
+func TestHasPostTab(t *testing.T) {
+	assert.False(t, render.HasPostTab(nil))
+	assert.False(t, render.HasPostTab([]string{}))
+	assert.True(t, render.HasPostTab([]string{"main.go"}))
+	assert.True(t, render.HasPostTab([]string{"README.md"}))
+}
+
 func testRenderFile(t *testing.T) func(render.RenderedFile) string {
 	return func(file render.RenderedFile) string {
 		switch f := file.(type) {

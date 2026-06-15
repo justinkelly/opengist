@@ -19,7 +19,7 @@ func GistRoot(ctx *context.Context) error {
 		return GistJson(ctx)
 	}
 
-	if hasReadme, ok := ctx.GetData("hasReadme").(bool); ok && hasReadme {
+	if hasPostTab, ok := ctx.GetData("hasPostTab").(bool); ok && hasPostTab {
 		gist := ctx.GetData("gist").(*db.Gist)
 		return ctx.Redirect(302, "/"+gist.User.Username+"/"+gist.Identifier()+"/post")
 	}
@@ -67,41 +67,65 @@ func Post(ctx *context.Context) error {
 		revision = "HEAD"
 	}
 
-	files, _, err := gist.Files(revision, false)
+	files, hasMoreFiles, err := gist.Files(revision, true)
 	if _, ok := err.(*git.RevisionNotFoundError); ok {
 		return ctx.NotFound("Revision not found")
 	} else if err != nil {
 		return ctx.ErrorRes(500, "Error fetching files", err)
 	}
 
-	readme := render.FindReadmeFile(files)
-	if readme == nil {
+	if len(files) == 0 {
 		return ctx.Redirect(302, "/"+gist.User.Username+"/"+gist.Identifier())
 	}
 
+	readme := render.FindReadmeFile(files)
+	if readme != nil {
+		files, _, err = gist.Files(revision, false)
+		if err != nil {
+			return ctx.ErrorRes(500, "Error fetching files", err)
+		}
+		readme = render.FindReadmeFile(files)
+	}
+
 	renderedFiles := render.RenderFiles(files)
-	renderedMap := render.BuildRenderedFileMap(renderedFiles)
 
 	ctx.SetData("commit", revision)
 	ctx.SetData("revision", revision)
+	ctx.SetData("page", "post")
+	ctx.SetData("htmlTitle", gist.Title)
 
-	postHTML, err := render.PostMarkdown(readme.Content, render.PostContext{
-		Rendered: renderedMap,
-		RenderFile: func(file render.RenderedFile) string {
-			html, err := renderGistFileHTML(ctx, file)
-			if err != nil {
-				return `<div class="gist-embed-error rounded-md border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-2 text-sm text-red-900 dark:text-red-200">Failed to render file</div>`
-			}
-			return html
-		},
-	})
-	if err != nil {
-		return ctx.ErrorRes(500, "Error rendering post", err)
+	if readme != nil {
+		renderedMap := render.BuildRenderedFileMap(renderedFiles)
+
+		postHTML, err := render.PostMarkdown(readme.Content, render.PostContext{
+			Rendered: renderedMap,
+			RenderFile: func(file render.RenderedFile) string {
+				html, err := renderGistFileHTML(ctx, file)
+				if err != nil {
+					return `<div class="gist-embed-error rounded-md border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-2 text-sm text-red-900 dark:text-red-200">Failed to render file</div>`
+				}
+				return html
+			},
+		})
+		if err != nil {
+			return ctx.ErrorRes(500, "Error rendering post", err)
+		}
+
+		ctx.SetData("postHTML", postHTML)
+		return ctx.Html("post.html")
 	}
 
-	ctx.SetData("page", "post")
+	var postHTML string
+	if gist.Description != "" {
+		postHTML, err = render.PostMarkdownString(gist.Description)
+		if err != nil {
+			return ctx.ErrorRes(500, "Error rendering post", err)
+		}
+	}
+
 	ctx.SetData("postHTML", postHTML)
-	ctx.SetData("htmlTitle", gist.Title)
+	ctx.SetData("postFiles", renderedFiles)
+	ctx.SetData("hasMoreFiles", hasMoreFiles)
 	return ctx.Html("post.html")
 }
 
