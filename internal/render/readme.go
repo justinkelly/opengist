@@ -11,6 +11,10 @@ func IsReadmeFilename(filename string) bool {
 	return strings.EqualFold(filepath.Base(filename), "README.md")
 }
 
+func IsMarkdownFilename(filename string) bool {
+	return strings.EqualFold(filepath.Ext(filename), ".md")
+}
+
 func FindReadmeFile(files []*git.File) *git.File {
 	for _, file := range files {
 		if IsReadmeFilename(file.Filename) {

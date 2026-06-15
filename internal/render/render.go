@@ -48,6 +48,46 @@ func RenderFiles(files []*git.File) []RenderedFile {
 	return renderedFiles
 }
 
+func RenderFilesForPost(files []*git.File) []RenderedFile {
+	const numWorkers = 10
+	jobs := make(chan int, numWorkers)
+	renderedFiles := make([]RenderedFile, len(files))
+	var wg sync.WaitGroup
+
+	worker := func() {
+		for idx := range jobs {
+			renderedFiles[idx] = processFileForPost(files[idx])
+		}
+		wg.Done()
+	}
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go worker()
+	}
+
+	for i := range files {
+		jobs <- i
+	}
+	close(jobs)
+
+	wg.Wait()
+
+	return renderedFiles
+}
+
+func processFileForPost(file *git.File) RenderedFile {
+	if IsMarkdownFilename(file.Filename) && file.MimeType.IsText() {
+		rendered, err := renderMarkdownFileForPost(file)
+		if err != nil {
+			log.Error().Err(err).Msg("Error rendering markdown file for post " + file.Filename)
+			return processFile(file)
+		}
+		return rendered
+	}
+	return processFile(file)
+}
+
 func processFile(file *git.File) RenderedFile {
 	mt := file.MimeType
 	if mt.IsCSV() {

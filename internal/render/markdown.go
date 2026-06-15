@@ -39,6 +39,19 @@ func renderMarkdownFile(file *git.File) (HighlightedFile, error) {
 		Type: "Markdown",
 	}, err
 }
+
+func renderMarkdownFileForPost(file *git.File) (HighlightedFile, error) {
+	html, err := PostMarkdownString(file.Content)
+	if err != nil {
+		return HighlightedFile{}, err
+	}
+
+	return HighlightedFile{
+		File: file,
+		HTML: html,
+		Type: "Markdown",
+	}, nil
+}
 func MarkdownString(content string) (string, error) {
 	var buf bytes.Buffer
 	err := newMarkdownWithSvgExtension().Convert([]byte(content), &buf)

@@ -87,7 +87,7 @@ func Post(ctx *context.Context) error {
 		readme = render.FindReadmeFile(files)
 	}
 
-	renderedFiles := render.RenderFiles(files)
+	renderedFiles := render.RenderFilesForPost(files)
 
 	ctx.SetData("commit", revision)
 	ctx.SetData("revision", revision)

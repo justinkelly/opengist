@@ -558,4 +558,38 @@ func TestGistPost(t *testing.T) {
 		require.Contains(t, html, "data-file=\"notes.txt\"")
 		require.Contains(t, html, "copy-gist-btn")
 	})
+
+	t.Run("PostRendersMarkdownFilesAsHTML", func(t *testing.T) {
+		s.Login(t, "thomas")
+		resp := s.Request(t, "POST", "/", url.Values{
+			"title":       {"Docs"},
+			"description": {"Collection"},
+			"name":        {"guide.md", "example.go"},
+			"content":     {"# Guide\n\nSome **markdown**.", "package main"},
+			"private":     {"0"},
+		}, 302)
+
+		location := resp.Header.Get("Location")
+		parts := strings.Split(strings.TrimPrefix(location, "/"), "/")
+		require.Len(t, parts, 2)
+		username, identifier := parts[0], parts[1]
+		s.Logout()
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier+"/post", nil, 200)
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		html := string(body)
+		require.Contains(t, html, "data-file=\"guide.md\"")
+		require.Contains(t, html, "<h1")
+		require.Contains(t, html, "Guide")
+		require.Contains(t, html, "data-file=\"example.go\"")
+		require.Contains(t, html, "line-code")
+
+		resp = s.Request(t, "GET", "/"+username+"/"+identifier+"/code", nil, 200)
+		body, err = io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		html = string(body)
+		require.Contains(t, html, "line-code")
+		require.Contains(t, html, "Guide")
+	})
 }

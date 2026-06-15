@@ -75,6 +75,8 @@
             <div class="p-8 flex justify-center">{{ $file.HTML | safe }}</div>
         {{ else if isJupyter $file.Filename }}
           <div class="p-8 jupyter notebook"><pre>{{ $file.Content }}</pre></div>
+        {{ else if and (eq $.page "post") (ne $file.HTML "") (isMarkdown $file.Filename) }}
+            <div class="markdown markdown-body p-8">{{ $file.HTML | safe }}</div>
         {{ else }}
             <div class="code">
                 {{ $fileslug := slug $file.Filename }}
