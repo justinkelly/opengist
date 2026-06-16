@@ -9,31 +9,7 @@
     </header>
     <main class="mt-4">
         <form id="create" class="space-y-4" method="post" action="{{ $.c.ExternalUrl }}/">
-            <div>
-                <p class="cursor-pointer select-none" id="gist-metadata-btn">Metadata {{ if .dto.HasMetadata }}▲{{ else }}▼{{ end }}</p>
-                <div class="grid grid-cols-12 gap-x-4 mt-1 {{ if not .dto.HasMetadata }}hidden{{ end }}" id="gist-metadata">
-                    <div class="col-span-8 sm:col-span-4">
-                        <div class="mt-1">
-                            <input type="text" placeholder="{{ .locale.Tr "gist.new.title" }}" value="{{ .dto.Title }}" name="title" id="title" class="bg-white dark:bg-black shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-200 dark:border-gray-700 rounded-md" maxlength="250">
-                        </div>
-                    </div>
-                    <div class="col-span-12 sm:col-span-8">
-                        <div class="mt-1">
-                            <input type="text" placeholder="{{ .locale.Tr "gist.new.description" }}" value="{{ .dto.Description }}" name="description" id="description" class="bg-white dark:bg-black shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-200 dark:border-gray-700 rounded-md" maxlength="1000">
-                        </div>
-                    </div>
-                    <div class="col-span-6 sm:col-span-3 mt-2">
-                        <input type="text" placeholder="{{ .locale.Tr "gist.new.url" }}" value="{{ .dto.URL }}" name="url" id="url" class="bg-white dark:bg-black shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-200 dark:border-gray-700 rounded-md" maxlength="32">
-                    </div>
-
-                    <div class="col-span-12 sm:col-span-9 mt-2">
-                        <input type="text" placeholder="{{ .locale.Tr "gist.new.topics" }}" value="{{ .dto.Topics }}" name="topics" id="topics" class="bg-white dark:bg-black shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-200 dark:border-gray-700 rounded-md">
-                    </div>
-                    <div class="col-span-6 sm:col-span-3 mt-2">
-                        <input type="date" name="published_at" id="published_at" value="{{ .dto.PublishedAtDate }}" title="{{ .locale.Tr "gist.new.published-at-help" }}" aria-label="{{ .locale.Tr "gist.new.published-at" }}" class="bg-white dark:bg-black shadow-sm focus:ring-primary-500 focus:border-primary-500 block w-full sm:text-sm border-gray-200 dark:border-gray-700 rounded-md">
-                    </div>
-                </div>
-            </div>
+            {{ template "_gist_metadata_form" . }}
             <div id="editors" class="space-y-4">
                 {{ if .dto.Files }}
                     {{ range .dto.Files }}

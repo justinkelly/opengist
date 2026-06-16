@@ -705,6 +705,17 @@ func (gist *Gist) NbCommits() (string, error) {
 	return git.CountCommits(gist.User.Username, gist.Uuid)
 }
 
+// HasDisplayMetadata reports whether the gist has optional metadata set to
+// non-default values (title, description, topics, custom URL, published date, visibility).
+func (gist *Gist) HasDisplayMetadata() bool {
+	return gist.Title != "" ||
+		gist.Description != "" ||
+		len(gist.Topics) > 0 ||
+		gist.URL != "" ||
+		gist.PublishedAt > 0 ||
+		gist.Private != PublicVisibility
+}
+
 // PublishedAtDisplay returns the configured published date, or the git
 // repository creation time when unset.
 func (gist *Gist) PublishedAtDisplay() int64 {

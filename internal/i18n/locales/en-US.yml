@@ -34,9 +34,14 @@ gist.no-content: No files found
 gist.preview-non-available: Preview not available
 
 gist.new.new_gist: New gist
+gist.new.metadata: Metadata
 gist.new.title: Title
+gist.new.title-placeholder: My gist
 gist.new.description: Description
+gist.new.description-help: Used as the post content when no README.md file is found.
 gist.new.url: URL
+gist.new.url-placeholder: my-custom-slug
+gist.new.url-help: Optional custom slug for the gist page URL instead of the default identifier.
 gist.new.filename-with-extension: Filename with extension
 gist.new.indent-mode: Indent mode
 gist.new.indent-mode-space: Space
@@ -52,8 +57,13 @@ gist.new.create-private-button: Create private gist
 gist.new.preview: Preview
 gist.new.create-a-new-gist: Create a new gist
 gist.new.topics: Topics (separate with spaces)
-gist.new.published-at: Creation date
-gist.new.published-at-help: Optional. Leave empty to use the git repository creation date.
+gist.new.topics-help: Separate topics with spaces.
+gist.new.topics-placeholder: e.g. golang devops
+gist.new.published-at: Published date
+gist.new.published-at-help: Optional. Shown as the gist publication date. Leave empty to use the repository creation date.
+gist.metadata.visibility: Visibility
+gist.metadata.topics: Topics
+gist.metadata.filename: metadata.md
 gist.new.drop-files: Drop files here or click to upload
 gist.new.any-file-type: Upload any file type
 

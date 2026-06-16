@@ -39,3 +39,27 @@ func TestGistDTOHasMetadataIncludesPublishedAtDate(t *testing.T) {
 	dto := &GistDTO{PublishedAtDate: "2024-06-13"}
 	require.True(t, dto.HasMetadata())
 }
+
+func TestGistHasDisplayMetadata(t *testing.T) {
+	gist := &Gist{Private: PublicVisibility}
+	require.False(t, gist.HasDisplayMetadata())
+
+	gist.Title = "My project"
+	require.True(t, gist.HasDisplayMetadata())
+
+	gist = &Gist{Private: PublicVisibility}
+	gist.Description = "A note"
+	require.True(t, gist.HasDisplayMetadata())
+
+	gist = &Gist{Topics: []GistTopic{{Topic: "go"}}}
+	require.True(t, gist.HasDisplayMetadata())
+
+	gist = &Gist{URL: "my-slug"}
+	require.True(t, gist.HasDisplayMetadata())
+
+	gist = &Gist{PublishedAt: 1718236800}
+	require.True(t, gist.HasDisplayMetadata())
+
+	gist = &Gist{Private: UnlistedVisibility}
+	require.True(t, gist.HasDisplayMetadata())
+}

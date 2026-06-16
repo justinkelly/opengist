@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/thomiceli/opengist/internal/config"
 	"github.com/thomiceli/opengist/internal/db"
 	"github.com/thomiceli/opengist/internal/git"
 	"github.com/thomiceli/opengist/internal/render"
@@ -48,6 +49,24 @@ func GistIndex(ctx *context.Context) error {
 	}
 
 	renderedFiles := render.RenderFiles(files)
+
+	if gist.HasDisplayMetadata() {
+		metadataFile, err := render.RenderGistMetadataFile(gist, render.GistMetadataLabels{
+			Title:       ctx.Tr("gist.new.title"),
+			Description: ctx.Tr("gist.new.description"),
+			Topics:      ctx.Tr("gist.metadata.topics"),
+			URL:         ctx.Tr("gist.new.url"),
+			PublishedAt: ctx.Tr("gist.new.published-at"),
+			Visibility:  ctx.Tr("gist.metadata.visibility"),
+			Public:      ctx.Tr("gist.public"),
+			Unlisted:    ctx.Tr("gist.unlisted"),
+			Private:     ctx.Tr("gist.private"),
+		})
+		if err != nil {
+			return ctx.ErrorRes(500, "Error rendering metadata", err)
+		}
+		ctx.SetData("metadataFile", &metadataFile)
+	}
 
 	ctx.SetData("page", "code")
 	ctx.SetData("commit", revision)
@@ -104,6 +123,9 @@ func Post(ctx *context.Context) error {
 					return `<div class="gist-embed-error rounded-md border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-4 py-2 text-sm text-red-900 dark:text-red-200">Failed to render file</div>`
 				}
 				return html
+			},
+			RawFileURL: func(filename string) string {
+				return render.GistRawFileURL(config.C.ExternalUrl, gist.User.Username, gist.Identifier(), revision, filename)
 			},
 		})
 		if err != nil {

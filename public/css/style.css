@@ -213,7 +213,7 @@ dl.dl-config dd {
 }
 
 .gist-post-body img {
-    @apply bg-transparent dark:bg-transparent;
+    @apply block bg-transparent dark:bg-transparent mx-auto;
 }
 
 .chroma.preview.markdown pre code {
